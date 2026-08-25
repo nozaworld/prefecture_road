@@ -1,0 +1,319 @@
+@charset "utf-8";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro W3', 'メイリオ', Meiryo, sans-serif;
+  background-color: white;
+}
+
+/* ナビゲーション */
+.prefecture-nav {
+  background-color: #4FC3F7;
+}
+
+.prefecture-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.prefecture-nav a {
+  display: block;
+  padding: 15px 20px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.prefecture-nav a:hover,
+.prefecture-nav a.active {
+  background-color: #0288D1;
+}
+
+/* ヘッダー */
+.prefecture-page > header {
+  background-color: #4FC3F7;
+  min-height: 10vh;
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+/* 検索部分 */
+.search-section {
+  background-color: #81D4FA;
+  margin: 20px 5mm;
+  padding: 15px;
+}
+
+.search-section h3 {
+  margin-bottom: 10px;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.search-form-route,
+.search-form-length,
+.search-form-sort,
+.search-form-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.search-form-route {
+  min-width: 280px;
+}
+
+.sort-column {
+  width: 170px;
+}
+
+.search-form-buttons {
+  margin-left: auto;
+  gap: 10px;
+}
+
+.search-form label {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.search-form select,
+.search-form input[type="number"] {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.search-form input[type="number"] {
+  width: 140px;
+  text-align: right;
+}
+
+.search-form input[type="text"] {
+  width: 220px;
+  height: 27px;
+  font-size: small;
+  padding: 0 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.search-form button[type="submit"] {
+  padding: 8px 20px;
+  background-color: #0288D1;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.search-form button[type="submit"]:hover {
+  background-color: #01579B;
+}
+
+.delete-btn {
+  padding: 8px 20px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+}
+
+/* オートコンプリート */
+.input-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  min-width: 220px;
+  background: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: small;
+  z-index: 1000;
+  text-align: left;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.suggestions li {
+  padding: 6px;
+  cursor: pointer;
+}
+
+.suggestions li:hover,
+.suggestions li.highlighted {
+  background-color: #eef;
+}
+
+/* メッセージ */
+.message {
+  margin: 10px 5mm;
+  padding: 10px;
+  background-color: #fff9c4;
+  border-left: 4px solid #FBC02D;
+}
+
+/* グリッド */
+.grid-section {
+  margin: 0 5mm 20px;
+  overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th {
+  background-color: #0288D1;
+  color: white;
+  padding: 10px 5px;
+  text-align: center;
+  border: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+td {
+  padding: 8px 5px;
+  border: 1px solid #ddd;
+  text-align: center;
+  white-space: nowrap;
+}
+
+tr:nth-child(even) td {
+  background-color: #f9f9f9;
+}
+
+tr:hover td {
+  background-color: #e3f2fd;
+}
+
+.edit-btn {
+  padding: 5px 10px;
+  background-color: #199e22;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.edit-btn:hover {
+  background-color: #0f5f14;
+}
+
+/* 追加/更新フォーム */
+.add-section,
+.update-section {
+  margin: 20px 5mm;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border: 2px solid #0288D1;
+}
+
+.update-section {
+  border-color: #000000;
+  background-color: #FFF3E0;
+}
+
+.add-form,
+.update-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.add-form input,
+.update-form input {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.add-form button {
+  grid-column: 1 / -1;
+  padding: 10px;
+  background-color: #285b8e;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.add-form button:hover {
+  background-color: #16324f;
+}
+
+.update-form .button-group {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+}
+
+.update-form button {
+  flex: 1;
+  padding: 10px;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.update-form button[type="submit"] {
+  background-color: #0ba41f;
+}
+
+.update-form button[type="submit"]:hover {
+  background-color: #2b8303;
+}
+
+.update-form button[type="button"] {
+  background-color: #757575;
+}
+
+.update-form button[type="button"]:hover {
+  background-color: #616161;
+}

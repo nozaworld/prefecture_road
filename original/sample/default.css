@@ -1,0 +1,19 @@
+@charset "utf-8";
+
+div.header {
+	color: lightskyblue;
+	font-size: xx-large;
+	border-bottom: 1px solid;
+	margin-bottom: 30px;
+}
+div.form1 {
+	line-height: 2em;
+}
+div.footer {
+	color: lightskyblue;
+	margin: 4em 0 0;
+	padding: 5px;
+	border-top: 1px solid;
+	text-align: right;
+	font-size: x-small;
+}

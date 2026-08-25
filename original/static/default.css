@@ -1,0 +1,305 @@
+@charset "utf-8";
+
+/* 全体部分 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro W3', 'メイリオ', Meiryo, sans-serif;
+    background-color: white;
+}
+
+/* ヘッダー部分 */
+header {
+    background-color: #4FC3F7;
+    height: 10vh;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* ヘッダーと検索部分のスペース */
+.spacer1 {
+    height: 5vh;
+}
+
+/* 検索部分 */
+.search-section {
+    background-color: #81D4FA;
+    margin: 0 5mm;
+    padding: 15px;
+    min-height: 15vh;
+}
+.search-section h3 {
+    margin-bottom: 10px;
+}
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+#search-form > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+#search-form1 {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    min-width: 280px;
+    position: relative;
+    text-align: right;
+}
+#search-form2 {
+    flex: 0 0 auto;
+}
+.search-form > div:nth-child(3) {
+    flex: 0 0 auto;
+}
+
+#search-button {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+.search-form label {
+    font-weight: bold;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.search-form select, .search-form input[type="number"] {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+#search-form1 select {
+    min-width: 150px;
+}
+.search-form input[type="number"] {
+    width: 140px;
+    text-align: right;
+}
+#search-form2 select.sort-column{
+    width: 170px;
+}
+
+select[name="length_op"] {
+    min-width:70px;
+}
+.search-form > div:nth-child(3) select:first-of-type {
+    min-width: 150px;
+}
+.search-form > div:nth-child(3) select:last-of-type {
+    width: 70px;
+}
+.search-form input[type="submit"] {
+    padding: 8px 20px;
+    background-color: #0288D1;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+}
+.search-form input[type="submit"]:hover {
+    background-color: #01579B;
+}
+.search-form button[name="bulk_delete"] {
+    padding: 8px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+    margin: 0;
+}
+.search-form button[name="bulk_delete"]:hover {
+    background-color: #d32f2f;
+}
+.search-form > div:last-child {
+    padding-right: 0;
+}
+#search-form2{
+    text-align: right; 
+}
+#search-button{
+    text-align: center;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+input[type="text"]#routeInput {
+    width: 220px;
+    font-size: small;
+    height: 27px;
+}
+#search-form1 {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.input-wrapper {
+    position: relative;
+    display: inline-block;
+}
+ul#suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: none;
+    font-size: small;
+    z-index: 1000;
+    text-align: left;
+
+    max-height: 150px;
+    overflow-y: auto;
+}
+ul#suggestions li {
+    padding: 6px;
+    cursor: pointer;
+}
+ul#suggestions li:hover {
+    background-color: #eef;
+}
+
+/* 検索部分とGrid間のスペース */
+.spacer2 {
+    height: 5vh;
+}
+
+/* Grid上部のメッセージ表示部分 */
+.message {
+    margin: 10px 5mm;
+    padding: 10px;
+    background-color: #fff9c4;
+    border-left: 4px solid #FBC02D;
+}
+
+/* グリッド部分 */
+.grid-section {
+    margin: 0 5mm 0 5mm;
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto; 
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+th {
+    background-color: #0288D1;
+    color: white;
+    padding: 10px 5px;
+    text-align: center;
+    border: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+td {
+    padding: 8px 5px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+tr:hover {
+    background-color: #e3f2fd;
+}
+.edit-btn {
+    padding: 5px 10px;
+    background-color: #199e22;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.edit-btn:hover {
+    background-color: #0f5f14;
+}
+
+/* 追加/編集ボタン */
+.add-section, .update-section {
+    margin: 20px 5mm;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border: 2px solid #0288D1;
+}
+.update-section {
+    border-color: #000000;
+    background-color: #FFF3E0;
+}
+.add-form, .update-form {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.add-form input, .update-form input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+.add-form button {
+    grid-column: 1 / -1;
+    padding: 10px;
+    background-color: #285b8e;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.add-form button:hover {
+    background-color: #16324f;
+}
+.update-form .button-group {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+}
+.update-form button {
+    flex: 1;
+    padding: 10px;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.update-form button[name="update"] {
+    background-color: #0ba41f;
+}
+.update-form button[name="update"]:hover {
+    background-color: #2b8303;
+}
+.update-form button[name="cancel_update"] {
+    background-color: #757575;
+}
+.update-form button[name="cancel_update"]:hover {
+    background-color: #616161;
+}

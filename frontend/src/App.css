@@ -14,20 +14,27 @@ body {
 /* ナビゲーション */
 .prefecture-nav {
   background-color: #4FC3F7;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 20px;
 }
 
-.prefecture-nav ul {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
+.prefecture-select {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 3px;
+  font-weight: bold;
+  font-size: 15px;
 }
 
 .prefecture-nav a {
   display: block;
-  padding: 15px 20px;
+  padding: 8px 16px;
   color: white;
   text-decoration: none;
   font-weight: bold;
+  border-radius: 3px;
 }
 
 .prefecture-nav a:hover,
@@ -316,4 +323,108 @@ tr:hover td {
 
 .update-form button[type="button"]:hover {
   background-color: #616161;
+}
+
+
+/* ページネーション */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin: 0 5mm 20px;
+  padding: 10px;
+  background-color: #f5f5f5;
+}
+
+.pagination button {
+  padding: 6px 16px;
+  background-color: #0288D1;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.pagination button:disabled {
+  background-color: #b0bec5;
+  cursor: default;
+}
+
+.pagination span {
+  font-weight: bold;
+}
+
+
+/* 複数県横断検索 */
+.prefecture-multi-select {
+  background-color: #E1F5FE;
+  margin: 20px 5mm 0;
+  padding: 15px;
+}
+
+.prefecture-multi-select-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.prefecture-multi-select-header button {
+  padding: 4px 12px;
+  background-color: #0288D1;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.prefecture-multi-select-header button:hover {
+  background-color: #0277BD;
+}
+
+.prefecture-multi-select-header .prefecture-multi-select-toggle {
+  margin-left: auto;
+  background-color: #757575;
+}
+
+.prefecture-multi-select-header .prefecture-multi-select-toggle:hover {
+  background-color: #616161;
+}
+
+.prefecture-multi-select-regions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prefecture-multi-select-region {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.prefecture-multi-select-region-name {
+  min-width: 80px;
+  font-weight: bold;
+  color: #01579B;
+}
+
+.prefecture-multi-select-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.prefecture-multi-select-list label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.multi-mode-note {
+  margin: 0 5mm 20px;
+  color: #616161;
 }

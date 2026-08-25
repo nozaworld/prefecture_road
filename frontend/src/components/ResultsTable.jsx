@@ -1,6 +1,6 @@
 import { ROAD_FIELDS } from '../constants/roadFields';
 
-function ResultsTable({ roads, selectedIds, onSelectionChange, onEdit }) {
+function ResultsTable({ roads, startIndex, selectedIds, onSelectionChange, onEdit, showPrefecture = false }) {
   const toggle = (id) => {
     if (selectedIds.includes(id)) {
       onSelectionChange(selectedIds.filter((v) => v !== id));
@@ -15,6 +15,7 @@ function ResultsTable({ roads, selectedIds, onSelectionChange, onEdit }) {
         <thead>
           <tr>
             <th>No</th>
+            {showPrefecture && <th>都道府県</th>}
             {ROAD_FIELDS.map((f) => (
               <th key={f.name}>{f.label}</th>
             ))}
@@ -24,11 +25,12 @@ function ResultsTable({ roads, selectedIds, onSelectionChange, onEdit }) {
         </thead>
         <tbody>
           {roads.length === 0 ? (
-            <tr><td colSpan={ROAD_FIELDS.length + 3}>検索結果がありません</td></tr>
+            <tr><td colSpan={ROAD_FIELDS.length + 3 + (showPrefecture ? 1 : 0)}>検索結果がありません</td></tr>
           ) : (
             roads.map((road, idx) => (
               <tr key={road.id}>
-                <td>{idx + 1}</td>
+                <td>{startIndex + idx + 1}</td>
+                {showPrefecture && <td>{road.prefecture_display}</td>}
                 {ROAD_FIELDS.map((f) => (
                   <td key={f.name}>{road[f.name]}</td>
                 ))}

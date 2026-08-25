@@ -1,18 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import AddForm from '../components/AddForm';
 import EditForm from '../components/EditForm';
 import Pagination from '../components/Pagination';
+import PrefectureMultiSelect from '../components/PrefectureMultiSelect';
 import ResultsTable from '../components/ResultsTable';
 import SearchForm from '../components/SearchForm';
 import { PREFECTURE_NAMES } from '../constants/prefectures';
-import {
-  bulkDeleteRoads,
-  createRoad,
-  getRouteNames,
-  searchRoads,
-  updateRoad,
-} from '../api/client';
+import { bulkDeleteRoads, getRouteNames, searchRoads, updateRoad } from '../api/client';
 
 const PAGE_SIZE = 50;
 
@@ -24,8 +17,8 @@ const defaultFilters = {
   sortOrder: 'ASC',
 };
 
-function PrefecturePage() {
-  const { prefecture } = useParams();
+function MultiPrefecturePage() {
+  const [selectedPrefectures, setSelectedPrefectures] = useState(Object.keys(PREFECTURE_NAMES));
   const [routeNames, setRouteNames] = useState([]);
   const [filters, setFilters] = useState(defaultFilters);
   const [roads, setRoads] = useState([]);
@@ -37,8 +30,15 @@ function PrefecturePage() {
 
   const runSearch = useCallback(
     (currentFilters = filters, targetPage = 1) => {
+      if (selectedPrefectures.length === 0) {
+        setRoads([]);
+        setCount(0);
+        setPage(1);
+        setMessage('都道府県を1つ以上選択してください。');
+        return;
+      }
       const params = {
-        prefecture,
+        prefecture: selectedPrefectures.join(','),
         route_name: currentFilters.routeName,
         length_value: currentFilters.lengthValue,
         length_op: currentFilters.lengthOp,
@@ -56,7 +56,7 @@ function PrefecturePage() {
         })
         .catch(() => setMessage('検索中にエラーが発生しました。'));
     },
-    [prefecture, filters]
+    [selectedPrefectures, filters]
   );
 
   useEffect(() => {
@@ -66,26 +66,23 @@ function PrefecturePage() {
     setPage(1);
     setSelectedIds([]);
     setEditingRoad(null);
-    getRouteNames(prefecture)
+    if (selectedPrefectures.length === 0) {
+      setRouteNames([]);
+      setMessage('都道府県を1つ以上選択してください。');
+      return;
+    }
+    getRouteNames(selectedPrefectures.join(','))
       .then((names) => {
         setRouteNames(names);
         runSearch(defaultFilters, 1);
       })
       .catch(() => setRouteNames([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefecture]);
-
-  const handleAdd = (data) => {
-    createRoad({ ...data, prefecture })
-      .then(() => {
-        setMessage('データを追加しました。');
-        runSearch(filters, page);
-      })
-      .catch(() => setMessage('データの追加に失敗しました（区間番号が重複している可能性があります）。'));
-  };
+  }, [selectedPrefectures]);
 
   const handleUpdate = (id, data) => {
-    updateRoad(id, { ...data, prefecture })
+    // dataには編集対象の道路が元々持っていたprefectureがそのまま含まれている
+    updateRoad(id, data)
       .then(() => {
         setMessage(`区間番号 ${data.section_number} のデータを更新しました。`);
         setEditingRoad(null);
@@ -112,7 +109,8 @@ function PrefecturePage() {
 
   return (
     <div className="prefecture-page">
-      <header>交通情報マスター（{PREFECTURE_NAMES[prefecture] ?? prefecture}の道路）</header>
+      <header>交通情報マスター（複数県横断検索）</header>
+      <PrefectureMultiSelect selected={selectedPrefectures} onChange={setSelectedPrefectures} />
       <SearchForm
         routeNames={routeNames}
         filters={filters}
@@ -127,6 +125,7 @@ function PrefecturePage() {
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         onEdit={setEditingRoad}
+        showPrefecture
       />
       <Pagination
         page={page}
@@ -137,9 +136,11 @@ function PrefecturePage() {
       {editingRoad && (
         <EditForm road={editingRoad} onUpdate={handleUpdate} onCancel={() => setEditingRoad(null)} />
       )}
-      <AddForm onAdd={handleAdd} />
+      <p className="multi-mode-note">
+        新規データの追加は，対象の都道府県のページから行ってください。
+      </p>
     </div>
   );
 }
 
-export default PrefecturePage;
+export default MultiPrefecturePage;

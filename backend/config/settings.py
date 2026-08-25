@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2(pik3#dhnuutojiej1eds0e_*jjgdysvg@=u0o183&(pqagxp'
+# 本番運用時は環境変数 DJANGO_SECRET_KEY を必ず設定すること
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-2(pik3#dhnuutojiej1eds0e_*jjgdysvg@=u0o183&(pqagxp',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get(
+    'DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1'
+).split(',')
 
 
 # Application definition
@@ -77,10 +84,17 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# PostgreSQLに接続する。ローカルでpostgresを起動していない場合は，
+# 環境変数を設定せずに実行するとdjango.db.backends.postgresqlの既定値（localhost:5432）に
+# 接続を試みてエラーになる。README のセットアップ手順を参照。
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'prefecture'),
+        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
 
@@ -138,5 +152,13 @@ REST_FRAMEWORK = {
 # django-cors-headers（開発中はReactの開発サーバーからのアクセスを許可する）
 
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+# セッション認証のCookieをReact側からのクロスオリジンリクエストでも送受信できるようにする
+CORS_ALLOW_CREDENTIALS = True
+
+# Django 4.1以降，CSRF保護のためクロスオリジンのPOST等では信頼するオリジンの明示が必要
+CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
 ]

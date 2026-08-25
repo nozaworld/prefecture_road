@@ -1,28 +1,42 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { getPrefectures } from '../api/client';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { PREFECTURE_NAMES } from '../constants/prefectures';
+import { REGIONS } from '../constants/regions';
 
 function PrefectureNav() {
-  const [prefectures, setPrefectures] = useState([]);
-  const { prefecture: current } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  // PrefectureNavは<Routes>の外（兄弟要素）に置かれているためuseParamsではURLパラメータを取得できない。
+  // useLocationはRouter配下ならどこでも使えるため，パス名から現在地を判定する。
+  const current = location.pathname.slice(1);
 
-  useEffect(() => {
-    getPrefectures()
-      .then(setPrefectures)
-      .catch(() => setPrefectures([]));
-  }, []);
+  const handleChange = (event) => {
+    const value = event.target.value;
+    if (value) {
+      navigate(`/${value}`);
+    }
+  };
 
   return (
     <nav className="prefecture-nav">
-      <ul>
-        {prefectures.map((pref) => (
-          <li key={pref.code}>
-            <Link to={`/${pref.code}`} className={pref.code === current ? 'active' : ''}>
-              {pref.name}の道路
-            </Link>
-          </li>
+      <select
+        className="prefecture-select"
+        value={PREFECTURE_NAMES[current] ? current : ''}
+        onChange={handleChange}
+      >
+        <option value="" disabled>都道府県を選択</option>
+        {REGIONS.map((region) => (
+          <optgroup key={region.name} label={region.name}>
+            {region.codes.map((code) => (
+              <option key={code} value={code}>
+                {PREFECTURE_NAMES[code]}
+              </option>
+            ))}
+          </optgroup>
         ))}
-      </ul>
+      </select>
+      <Link to="/multi" className={current === 'multi' ? 'active' : ''}>
+        複数県横断検索
+      </Link>
     </nav>
   );
 }

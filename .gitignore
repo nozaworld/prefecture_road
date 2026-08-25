@@ -17,3 +17,6 @@ frontend/.vite/
 # original
 original/db/
 original/new_env/
+
+# 削除待ちファイルの一時退避先
+_to_delete/

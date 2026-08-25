@@ -4,6 +4,10 @@ const API_BASE_URL = 'http://localhost:8000/api';
 
 const client = axios.create({
   baseURL: API_BASE_URL,
+  // Django側のセッションCookie・CSRFトークンをクロスオリジンでも送受信する
+  withCredentials: true,
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFToken',
 });
 
 export const getPrefectures = () => client.get('/prefectures/').then((res) => res.data);

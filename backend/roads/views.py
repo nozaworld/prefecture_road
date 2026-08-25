@@ -1,4 +1,4 @@
-from rest_framework import status, viewsets
+from rest_framework import pagination, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,23 +7,36 @@ from .models import PREFECTURE_CHOICES, Road
 from .serializers import RoadSerializer
 
 
+class RoadPagination(pagination.PageNumberPagination):
+    """道路データ一覧のページネーション（全件を一度に返さないための設定）"""
+
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 200
+
+
 class RoadViewSet(viewsets.ModelViewSet):
     """道路データのCRUD・検索・一括削除・路線名一覧を提供する"""
 
     serializer_class = RoadSerializer
-    pagination_class = None
+    pagination_class = RoadPagination
+    # 閲覧（GET）は誰でも可，登録・更新・削除はログインユーザーのみ許可する
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         queryset = Road.objects.all()
         params = self.request.query_params
 
+        # 単一県（例: shizuoka）だけでなく，カンマ区切りで複数県（例: shizuoka,aichi）も指定できる
         prefecture = params.get('prefecture')
         if prefecture:
-            queryset = queryset.filter(prefecture=prefecture)
+            prefecture_codes = [code for code in prefecture.split(',') if code]
+            if prefecture_codes:
+                queryset = queryset.filter(prefecture__in=prefecture_codes)
 
         route_name = params.get('route_name')
         if route_name and route_name != 'すべて':
-            queryset = queryset.filter(route_name=route_name)
+            queryset = queryset.filter(route_name__icontains=route_name)
 
         length_value = params.get('length_value')
         length_op = params.get('length_op')
@@ -52,7 +65,9 @@ class RoadViewSet(viewsets.ModelViewSet):
         prefecture = request.query_params.get('prefecture')
         queryset = Road.objects.all()
         if prefecture:
-            queryset = queryset.filter(prefecture=prefecture)
+            prefecture_codes = [code for code in prefecture.split(',') if code]
+            if prefecture_codes:
+                queryset = queryset.filter(prefecture__in=prefecture_codes)
         names = list(
             queryset.order_by('route_name').values_list('route_name', flat=True).distinct()
         )

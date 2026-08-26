@@ -1,7 +1,24 @@
 import { ROAD_FIELDS } from '../constants/roadFields';
+import type { Road } from '../types';
 
-function ResultsTable({ roads, startIndex, selectedIds, onSelectionChange, onEdit, showPrefecture = false }) {
-  const toggle = (id) => {
+interface ResultsTableProps {
+  roads: Road[];
+  startIndex: number;
+  selectedIds: number[];
+  onSelectionChange: (ids: number[]) => void;
+  onEdit: (road: Road) => void;
+  showPrefecture?: boolean;
+}
+
+function ResultsTable({
+  roads,
+  startIndex,
+  selectedIds,
+  onSelectionChange,
+  onEdit,
+  showPrefecture = false,
+}: ResultsTableProps) {
+  const toggle = (id: number) => {
     if (selectedIds.includes(id)) {
       onSelectionChange(selectedIds.filter((v) => v !== id));
     } else {

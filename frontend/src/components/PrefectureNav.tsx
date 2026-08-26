@@ -1,3 +1,4 @@
+import { type ChangeEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { PREFECTURE_NAMES } from '../constants/prefectures';
 import { REGIONS } from '../constants/regions';
@@ -9,7 +10,7 @@ function PrefectureNav() {
   // useLocationはRouter配下ならどこでも使えるため，パス名から現在地を判定する。
   const current = location.pathname.slice(1);
 
-  const handleChange = (event) => {
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     if (value) {
       navigate(`/${value}`);

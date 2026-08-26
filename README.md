@@ -2,12 +2,12 @@
 
 道路交通センサスデータを都道府県ごとに検索・登録・編集・削除できるウェブアプリケーションです。
 `original/` にある，Python標準のWSGI（CGI相当）とSQLiteだけで実装された旧バージョンを，
-バックエンドをDjango（Django REST Framework），フロントエンドをReact（Vite）に置き換えて再構築しています。
+バックエンドをDjango（Django REST Framework），フロントエンドをReact（Vite + TypeScript）に置き換えて再構築しています。
 
 ## 構成
 
 - `backend/` : Django + Django REST FrameworkによるAPIサーバー
-- `frontend/` : React（Vite）によるSPA
+- `frontend/` : React（Vite + TypeScript）によるSPA
 - `original/` : 旧バージョン（WSGI + SQLite，参考用）
 - `docs/` : 構成図などの資料
 

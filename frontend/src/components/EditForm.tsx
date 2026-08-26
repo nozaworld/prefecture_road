@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { ROAD_FIELDS } from '../constants/roadFields';
+import type { Road } from '../types';
 
-function EditForm({ road, onUpdate, onCancel }) {
-  const [form, setForm] = useState(road);
+interface EditFormProps {
+  road: Road | null;
+  onUpdate: (id: number, data: Road) => void;
+  onCancel: () => void;
+}
+
+function EditForm({ road, onUpdate, onCancel }: EditFormProps) {
+  const [form, setForm] = useState<Road | null>(road);
 
   useEffect(() => {
     setForm(road);
@@ -10,11 +17,11 @@ function EditForm({ road, onUpdate, onCancel }) {
 
   if (!form) return null;
 
-  const handleChange = (name, value) => {
-    setForm((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (name: string, value: string) => {
+    setForm((prev) => (prev ? { ...prev, [name]: value } : prev));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onUpdate(form.id, form);
   };

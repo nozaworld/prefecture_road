@@ -1,17 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
-function RouteAutocomplete({ routeNames, value, onChange }) {
+interface RouteAutocompleteProps {
+  routeNames: string[];
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function RouteAutocomplete({ routeNames, value, onChange }: RouteAutocompleteProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
-  const wrapperRef = useRef(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const matches = value.trim() === ''
     ? routeNames
     : routeNames.filter((name) => name.includes(value.trim()));
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
       }
     }
@@ -19,7 +25,7 @@ function RouteAutocomplete({ routeNames, value, onChange }) {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const handleKeyDown = (event) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions || matches.length === 0) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();

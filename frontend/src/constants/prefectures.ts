@@ -1,5 +1,5 @@
 // JIS都道府県コード順（全47都道府県）
-export const PREFECTURE_NAMES = {
+export const PREFECTURE_NAMES: Record<string, string> = {
   hokkaido: '北海道',
   aomori: '青森県',
   iwate: '岩手県',

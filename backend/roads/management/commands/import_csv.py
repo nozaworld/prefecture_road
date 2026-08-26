@@ -89,8 +89,5 @@ class Command(BaseCommand):
                 ))
                 imported += 1
 
-        # PostgreSQLは1クエリあたりのパラメータ数に65535という上限があるため，
-        # batch_sizeを指定せずbulk_createすると，行数の多い都道府県（1行19パラメータ）で
-        # 上限を超えてエラーになる。SQLiteでも問題なく動く安全な値としてbatch_size=1000にする。
         Road.objects.bulk_create(roads, ignore_conflicts=True, batch_size=1000)
         self.stdout.write(self.style.SUCCESS(f'{prefecture}: {imported}件を取り込みました（{skipped}件スキップ）。'))

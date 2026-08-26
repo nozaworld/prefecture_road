@@ -4,10 +4,15 @@ import { REGIONS } from '../constants/regions';
 
 const ALL_CODES = Object.keys(PREFECTURE_NAMES);
 
-function PrefectureMultiSelect({ selected, onChange }) {
+interface PrefectureMultiSelectProps {
+  selected: string[];
+  onChange: (codes: string[]) => void;
+}
+
+function PrefectureMultiSelect({ selected, onChange }: PrefectureMultiSelectProps) {
   const [collapsed, setCollapsed] = useState(false);
 
-  const toggle = (code) => {
+  const toggle = (code: string) => {
     if (selected.includes(code)) {
       onChange(selected.filter((c) => c !== code));
     } else {

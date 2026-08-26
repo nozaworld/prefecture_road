@@ -1,22 +1,27 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ROAD_FIELDS } from '../constants/roadFields';
+import type { RoadFormData } from '../types';
 
-const emptyForm = () => {
-  const base = { section_number: '' };
+const emptyForm = (): RoadFormData => {
+  const base: RoadFormData = { section_number: '' };
   ROAD_FIELDS.forEach((f) => {
     base[f.name] = '';
   });
   return base;
 };
 
-function AddForm({ onAdd }) {
-  const [form, setForm] = useState(emptyForm());
+interface AddFormProps {
+  onAdd: (data: RoadFormData) => void;
+}
 
-  const handleChange = (name, value) => {
+function AddForm({ onAdd }: AddFormProps) {
+  const [form, setForm] = useState<RoadFormData>(emptyForm());
+
+  const handleChange = (name: string, value: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onAdd(form);
     setForm(emptyForm());

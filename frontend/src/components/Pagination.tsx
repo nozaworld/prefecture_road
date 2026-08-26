@@ -1,4 +1,11 @@
-function Pagination({ page, pageCount, count, onPageChange }) {
+interface PaginationProps {
+  page: number;
+  pageCount: number;
+  count: number;
+  onPageChange: (page: number) => void;
+}
+
+function Pagination({ page, pageCount, count, onPageChange }: PaginationProps) {
   if (count === 0) return null;
 
   return (

@@ -1,5 +1,7 @@
-// 8地方区分。ヘッダーの都道府県選択と複数県横断検索の一覧をグループ化するために使う。
-export const REGIONS = [
+import type { Region } from '../types';
+
+// 7地方区分。ヘッダーの都道府県選択と複数県横断検索の一覧をグループ化するために使う。
+export const REGIONS: Region[] = [
   {
     name: '北海道・東北',
     codes: ['hokkaido', 'aomori', 'iwate', 'miyagi', 'akita', 'yamagata', 'fukushima'],

@@ -1,13 +1,23 @@
+import type { FormEvent, MouseEvent } from 'react';
 import RouteAutocomplete from './RouteAutocomplete';
 import { SORT_OPTIONS } from '../constants/roadFields';
+import type { Filters } from '../types';
 
-function SearchForm({ routeNames, filters, onFiltersChange, onSearch, onBulkDelete }) {
-  const handleSubmit = (event) => {
+interface SearchFormProps {
+  routeNames: string[];
+  filters: Filters;
+  onFiltersChange: (filters: Filters) => void;
+  onSearch: () => void;
+  onBulkDelete: () => void;
+}
+
+function SearchForm({ routeNames, filters, onFiltersChange, onSearch, onBulkDelete }: SearchFormProps) {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSearch();
   };
 
-  const handleDelete = (event) => {
+  const handleDelete = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     if (window.confirm('選択した項目を削除しますか？')) {
       onBulkDelete();
@@ -37,7 +47,7 @@ function SearchForm({ routeNames, filters, onFiltersChange, onSearch, onBulkDele
           />
           <select
             value={filters.lengthOp}
-            onChange={(e) => onFiltersChange({ ...filters, lengthOp: e.target.value })}
+            onChange={(e) => onFiltersChange({ ...filters, lengthOp: e.target.value as Filters['lengthOp'] })}
           >
             <option value="gte">以上</option>
             <option value="lte">以下</option>
@@ -57,7 +67,7 @@ function SearchForm({ routeNames, filters, onFiltersChange, onSearch, onBulkDele
           </select>
           <select
             value={filters.sortOrder}
-            onChange={(e) => onFiltersChange({ ...filters, sortOrder: e.target.value })}
+            onChange={(e) => onFiltersChange({ ...filters, sortOrder: e.target.value as Filters['sortOrder'] })}
           >
             <option value="ASC">昇順</option>
             <option value="DESC">降順</option>

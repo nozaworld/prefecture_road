@@ -1,15 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import AddForm from '../components/AddForm';
 import EditForm from '../components/EditForm';
 import Pagination from '../components/Pagination';
-import PrefectureMultiSelect from '../components/PrefectureMultiSelect';
 import ResultsTable from '../components/ResultsTable';
 import SearchForm from '../components/SearchForm';
 import { PREFECTURE_NAMES } from '../constants/prefectures';
-import { bulkDeleteRoads, getRouteNames, searchRoads, updateRoad } from '../api/client';
+import {
+  bulkDeleteRoads,
+  createRoad,
+  getRouteNames,
+  searchRoads,
+  updateRoad,
+} from '../api/client';
+import type { Filters, Road, RoadFormData } from '../types';
 
 const PAGE_SIZE = 50;
 
-const defaultFilters = {
+const defaultFilters: Filters = {
   routeName: 'すべて',
   lengthValue: '',
   lengthOp: 'gte',
@@ -17,28 +25,21 @@ const defaultFilters = {
   sortOrder: 'ASC',
 };
 
-function MultiPrefecturePage() {
-  const [selectedPrefectures, setSelectedPrefectures] = useState(Object.keys(PREFECTURE_NAMES));
-  const [routeNames, setRouteNames] = useState([]);
-  const [filters, setFilters] = useState(defaultFilters);
-  const [roads, setRoads] = useState([]);
+function PrefecturePage() {
+  const { prefecture } = useParams<{ prefecture: string }>();
+  const [routeNames, setRouteNames] = useState<string[]>([]);
+  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const [roads, setRoads] = useState<Road[]>([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
   const [message, setMessage] = useState('');
-  const [selectedIds, setSelectedIds] = useState([]);
-  const [editingRoad, setEditingRoad] = useState(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [editingRoad, setEditingRoad] = useState<Road | null>(null);
 
   const runSearch = useCallback(
-    (currentFilters = filters, targetPage = 1) => {
-      if (selectedPrefectures.length === 0) {
-        setRoads([]);
-        setCount(0);
-        setPage(1);
-        setMessage('都道府県を1つ以上選択してください。');
-        return;
-      }
+    (currentFilters: Filters = filters, targetPage = 1) => {
       const params = {
-        prefecture: selectedPrefectures.join(','),
+        prefecture: prefecture ?? '',
         route_name: currentFilters.routeName,
         length_value: currentFilters.lengthValue,
         length_op: currentFilters.lengthOp,
@@ -56,7 +57,7 @@ function MultiPrefecturePage() {
         })
         .catch(() => setMessage('検索中にエラーが発生しました。'));
     },
-    [selectedPrefectures, filters]
+    [prefecture, filters]
   );
 
   useEffect(() => {
@@ -66,23 +67,27 @@ function MultiPrefecturePage() {
     setPage(1);
     setSelectedIds([]);
     setEditingRoad(null);
-    if (selectedPrefectures.length === 0) {
-      setRouteNames([]);
-      setMessage('都道府県を1つ以上選択してください。');
-      return;
-    }
-    getRouteNames(selectedPrefectures.join(','))
+    if (!prefecture) return;
+    getRouteNames(prefecture)
       .then((names) => {
         setRouteNames(names);
         runSearch(defaultFilters, 1);
       })
       .catch(() => setRouteNames([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPrefectures]);
+  }, [prefecture]);
 
-  const handleUpdate = (id, data) => {
-    // dataには編集対象の道路が元々持っていたprefectureがそのまま含まれている
-    updateRoad(id, data)
+  const handleAdd = (data: RoadFormData) => {
+    createRoad({ ...data, prefecture })
+      .then(() => {
+        setMessage('データを追加しました。');
+        runSearch(filters, page);
+      })
+      .catch(() => setMessage('データの追加に失敗しました（区間番号が重複している可能性があります）。'));
+  };
+
+  const handleUpdate = (id: number, data: Road) => {
+    updateRoad(id, { ...data, prefecture })
       .then(() => {
         setMessage(`区間番号 ${data.section_number} のデータを更新しました。`);
         setEditingRoad(null);
@@ -109,8 +114,7 @@ function MultiPrefecturePage() {
 
   return (
     <div className="prefecture-page">
-      <header>交通情報マスター（複数県横断検索）</header>
-      <PrefectureMultiSelect selected={selectedPrefectures} onChange={setSelectedPrefectures} />
+      <header>交通情報マスター（{(prefecture && PREFECTURE_NAMES[prefecture]) ?? prefecture}の道路）</header>
       <SearchForm
         routeNames={routeNames}
         filters={filters}
@@ -125,7 +129,6 @@ function MultiPrefecturePage() {
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         onEdit={setEditingRoad}
-        showPrefecture
       />
       <Pagination
         page={page}
@@ -136,11 +139,9 @@ function MultiPrefecturePage() {
       {editingRoad && (
         <EditForm road={editingRoad} onUpdate={handleUpdate} onCancel={() => setEditingRoad(null)} />
       )}
-      <p className="multi-mode-note">
-        新規データの追加は，対象の都道府県のページから行ってください。
-      </p>
+      <AddForm onAdd={handleAdd} />
     </div>
   );
 }
 
-export default MultiPrefecturePage;
+export default PrefecturePage;

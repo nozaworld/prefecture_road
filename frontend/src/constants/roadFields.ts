@@ -1,4 +1,6 @@
-export const ROAD_FIELDS = [
+import type { RoadField, SortOption } from '../types';
+
+export const ROAD_FIELDS: RoadField[] = [
   { name: 'route_name', label: '路線名', formLabel: '路線名', type: 'text', required: true },
   { name: 'start_point', label: '起点側路線名', formLabel: '起点側', type: 'text' },
   { name: 'end_point', label: '終点側路線名', formLabel: '終点側', type: 'text' },
@@ -18,4 +20,4 @@ export const ROAD_FIELDS = [
   { name: 'speed_limit', label: '最高速度(km/h)', formLabel: '指定最高速度', type: 'number' },
 ];
 
-export const SORT_OPTIONS = ROAD_FIELDS.map((f) => ({ value: f.name, label: f.label }));
+export const SORT_OPTIONS: SortOption[] = ROAD_FIELDS.map((f) => ({ value: f.name, label: f.label }));

@@ -9,9 +9,17 @@ interface SearchFormProps {
   onFiltersChange: (filters: Filters) => void;
   onSearch: () => void;
   onBulkDelete: () => void;
+  canDelete?: boolean;
 }
 
-function SearchForm({ routeNames, filters, onFiltersChange, onSearch, onBulkDelete }: SearchFormProps) {
+function SearchForm({
+  routeNames,
+  filters,
+  onFiltersChange,
+  onSearch,
+  onBulkDelete,
+  canDelete = true,
+}: SearchFormProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSearch();
@@ -75,7 +83,9 @@ function SearchForm({ routeNames, filters, onFiltersChange, onSearch, onBulkDele
         </div>
         <div className="search-form-buttons">
           <button type="submit">検索</button>
-          <button type="button" className="delete-btn" onClick={handleDelete}>削除</button>
+          {canDelete && (
+            <button type="button" className="delete-btn" onClick={handleDelete}>削除</button>
+          )}
         </div>
       </form>
     </div>

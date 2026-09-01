@@ -14,6 +14,7 @@ import {
   updateRoad,
 } from '../api/client';
 import type { Filters, Road, RoadFormData } from '../types';
+import { useAuth } from '../auth/useAuth';
 
 const PAGE_SIZE = 50;
 
@@ -27,6 +28,8 @@ const defaultFilters: Filters = {
 
 function PrefecturePage() {
   const { prefecture } = useParams<{ prefecture: string }>();
+  const { isAuthenticated } = useAuth();
+  const [prevPrefecture, setPrevPrefecture] = useState(prefecture);
   const [routeNames, setRouteNames] = useState<string[]>([]);
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [roads, setRoads] = useState<Road[]>([]);
@@ -35,6 +38,19 @@ function PrefecturePage() {
   const [message, setMessage] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [editingRoad, setEditingRoad] = useState<Road | null>(null);
+
+  // prefectureが切り替わったら（別の都道府県のページに移動したら）画面の状態をリセットする。
+  // useEffect+setStateではなく，レンダー中に前回値と比較して直接setStateする
+  // （https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes）
+  if (prefecture !== prevPrefecture) {
+    setPrevPrefecture(prefecture);
+    setFilters(defaultFilters);
+    setRoads([]);
+    setCount(0);
+    setPage(1);
+    setSelectedIds([]);
+    setEditingRoad(null);
+  }
 
   const runSearch = useCallback(
     (currentFilters: Filters = filters, targetPage = 1) => {
@@ -61,12 +77,6 @@ function PrefecturePage() {
   );
 
   useEffect(() => {
-    setFilters(defaultFilters);
-    setRoads([]);
-    setCount(0);
-    setPage(1);
-    setSelectedIds([]);
-    setEditingRoad(null);
     if (!prefecture) return;
     getRouteNames(prefecture)
       .then((names) => {
@@ -121,6 +131,7 @@ function PrefecturePage() {
         onFiltersChange={setFilters}
         onSearch={() => runSearch(filters, 1)}
         onBulkDelete={handleBulkDelete}
+        canDelete={isAuthenticated}
       />
       {message && <div className="message">{message}</div>}
       <ResultsTable
@@ -129,6 +140,7 @@ function PrefecturePage() {
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         onEdit={setEditingRoad}
+        canEdit={isAuthenticated}
       />
       <Pagination
         page={page}
@@ -136,10 +148,10 @@ function PrefecturePage() {
         count={count}
         onPageChange={(nextPage) => runSearch(filters, nextPage)}
       />
-      {editingRoad && (
+      {isAuthenticated && editingRoad && (
         <EditForm road={editingRoad} onUpdate={handleUpdate} onCancel={() => setEditingRoad(null)} />
       )}
-      <AddForm onAdd={handleAdd} />
+      {isAuthenticated && <AddForm onAdd={handleAdd} />}
     </div>
   );
 }

@@ -118,3 +118,47 @@ class RoadApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['deleted'], 1)
         self.assertEqual(Road.objects.count(), 0)
+
+
+class AuthApiTests(TestCase):
+    """ログイン・ログアウトAPIの確認（サインアップは提供しない）"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='tester', password='testpass123')
+
+    def test_me_is_public_and_reports_anonymous(self):
+        response = self.client.get('/api/auth/me/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['is_authenticated'])
+        self.assertIsNone(response.data['username'])
+
+    def test_login_with_valid_credentials_succeeds(self):
+        response = self.client.post('/api/auth/login/', {
+            'username': 'tester', 'password': 'testpass123',
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['is_authenticated'])
+        self.assertEqual(response.data['username'], 'tester')
+
+    def test_login_with_invalid_credentials_fails(self):
+        response = self.client.post('/api/auth/login/', {
+            'username': 'tester', 'password': 'wrong-password',
+        })
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_me_reports_authenticated_after_login(self):
+        self.client.force_login(self.user)
+        response = self.client.get('/api/auth/me/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['is_authenticated'])
+        self.assertEqual(response.data['username'], 'tester')
+
+    def test_logout_clears_session(self):
+        self.client.force_login(self.user)
+        response = self.client.post('/api/auth/logout/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['is_authenticated'])
+
+        me_response = self.client.get('/api/auth/me/')
+        self.assertFalse(me_response.data['is_authenticated'])

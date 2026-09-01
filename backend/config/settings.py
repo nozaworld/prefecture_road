@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,17 +25,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # 本番運用時は環境変数 DJANGO_SECRET_KEY を必ず設定すること
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-2(pik3#dhnuutojiej1eds0e_*jjgdysvg@=u0o183&(pqagxp',
-)
+INSECURE_DEFAULT_SECRET_KEY = 'django-insecure-2(pik3#dhnuutojiej1eds0e_*jjgdysvg@=u0o183&(pqagxp'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', INSECURE_DEFAULT_SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get(
-    'DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1'
-).split(',')
+# DJANGO_DEBUG=Falseで起動する場合，開発用の既定SECRET_KEYのままだと起動時にエラーにする
+if not DEBUG and SECRET_KEY == INSECURE_DEFAULT_SECRET_KEY:
+    raise ImproperlyConfigured(
+        'DJANGO_DEBUG=Falseで起動する場合は，開発用の既定値ではないDJANGO_SECRET_KEYを設定してください。'
+    )
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
 
 
 # Application definition
@@ -51,6 +60,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -84,19 +94,30 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# PostgreSQLに接続する。ローカルでpostgresを起動していない場合は，
-# 環境変数を設定せずに実行するとdjango.db.backends.postgresqlの既定値（localhost:5432）に
-# 接続を試みてエラーになる。README のセットアップ手順を参照。
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'prefecture'),
-        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+# DATABASE_URLが設定されていればそれを使う（Neonなどのマネージド環境向け）。
+# 未設定時は，POSTGRES_*の個別環境変数からPostgreSQLに接続する（ローカル・Docker Compose向け）。
+# README のセットアップ手順を参照。
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=os.environ.get('DATABASE_SSL_REQUIRE', 'True') == 'True',
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'prefecture'),
+            'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
+            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        }
+    }
 
 
 # Password validation
@@ -134,6 +155,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -150,15 +181,34 @@ REST_FRAMEWORK = {
 
 
 # django-cors-headers（開発中はReactの開発サーバーからのアクセスを許可する）
+# 本番では環境変数DJANGO_CORS_ALLOWED_ORIGINS（カンマ区切り）でフロントエンドのオリジンを指定する
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    origin.strip()
+    for origin in os.environ.get('DJANGO_CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')
+    if origin.strip()
 ]
 
 # セッション認証のCookieをReact側からのクロスオリジンリクエストでも送受信できるようにする
 CORS_ALLOW_CREDENTIALS = True
 
 # Django 4.1以降，CSRF保護のためクロスオリジンのPOST等では信頼するオリジンの明示が必要
+# 本番では環境変数DJANGO_CSRF_TRUSTED_ORIGINS（カンマ区切り）でフロントエンドのオリジンを指定する
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
+    origin.strip()
+    for origin in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', 'http://localhost:5173').split(',')
+    if origin.strip()
 ]
+
+
+# 本番向けセキュリティ設定（DJANGO_DEBUG=Falseのときのみ有効化する）
+# Render等，リバースプロキシ配下で動かす前提でSECURE_PROXY_SSL_HEADERを設定している
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'True') == 'True'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_SECURE_HSTS_SECONDS', '3600'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True

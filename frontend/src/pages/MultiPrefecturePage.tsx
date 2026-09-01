@@ -7,6 +7,7 @@ import SearchForm from '../components/SearchForm';
 import { PREFECTURE_NAMES } from '../constants/prefectures';
 import { bulkDeleteRoads, getRouteNames, searchRoads, updateRoad } from '../api/client';
 import type { Filters, Road } from '../types';
+import { useAuth } from '../auth/useAuth';
 
 const PAGE_SIZE = 50;
 
@@ -19,7 +20,9 @@ const defaultFilters: Filters = {
 };
 
 function MultiPrefecturePage() {
+  const { isAuthenticated } = useAuth();
   const [selectedPrefectures, setSelectedPrefectures] = useState<string[]>(Object.keys(PREFECTURE_NAMES));
+  const [prevSelectedPrefectures, setPrevSelectedPrefectures] = useState(selectedPrefectures);
   const [routeNames, setRouteNames] = useState<string[]>([]);
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [roads, setRoads] = useState<Road[]>([]);
@@ -28,6 +31,23 @@ function MultiPrefecturePage() {
   const [message, setMessage] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [editingRoad, setEditingRoad] = useState<Road | null>(null);
+
+  // selectedPrefecturesが切り替わったら画面の状態をリセットする。
+  // useEffect+setStateではなく，レンダー中に前回値と比較して直接setStateする
+  // （https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes）
+  if (selectedPrefectures !== prevSelectedPrefectures) {
+    setPrevSelectedPrefectures(selectedPrefectures);
+    setFilters(defaultFilters);
+    setRoads([]);
+    setCount(0);
+    setPage(1);
+    setSelectedIds([]);
+    setEditingRoad(null);
+    if (selectedPrefectures.length === 0) {
+      setRouteNames([]);
+      setMessage('都道府県を1つ以上選択してください。');
+    }
+  }
 
   const runSearch = useCallback(
     (currentFilters: Filters = filters, targetPage = 1) => {
@@ -61,17 +81,7 @@ function MultiPrefecturePage() {
   );
 
   useEffect(() => {
-    setFilters(defaultFilters);
-    setRoads([]);
-    setCount(0);
-    setPage(1);
-    setSelectedIds([]);
-    setEditingRoad(null);
-    if (selectedPrefectures.length === 0) {
-      setRouteNames([]);
-      setMessage('都道府県を1つ以上選択してください。');
-      return;
-    }
+    if (selectedPrefectures.length === 0) return;
     getRouteNames(selectedPrefectures.join(','))
       .then((names) => {
         setRouteNames(names);
@@ -118,6 +128,7 @@ function MultiPrefecturePage() {
         onFiltersChange={setFilters}
         onSearch={() => runSearch(filters, 1)}
         onBulkDelete={handleBulkDelete}
+        canDelete={isAuthenticated}
       />
       {message && <div className="message">{message}</div>}
       <ResultsTable
@@ -127,6 +138,7 @@ function MultiPrefecturePage() {
         onSelectionChange={setSelectedIds}
         onEdit={setEditingRoad}
         showPrefecture
+        canEdit={isAuthenticated}
       />
       <Pagination
         page={page}
@@ -134,7 +146,7 @@ function MultiPrefecturePage() {
         count={count}
         onPageChange={(nextPage) => runSearch(filters, nextPage)}
       />
-      {editingRoad && (
+      {isAuthenticated && editingRoad && (
         <EditForm road={editingRoad} onUpdate={handleUpdate} onCancel={() => setEditingRoad(null)} />
       )}
       <p className="multi-mode-note">

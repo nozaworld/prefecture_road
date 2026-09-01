@@ -8,6 +8,7 @@ interface ResultsTableProps {
   onSelectionChange: (ids: number[]) => void;
   onEdit: (road: Road) => void;
   showPrefecture?: boolean;
+  canEdit?: boolean;
 }
 
 function ResultsTable({
@@ -17,6 +18,7 @@ function ResultsTable({
   onSelectionChange,
   onEdit,
   showPrefecture = false,
+  canEdit = true,
 }: ResultsTableProps) {
   const toggle = (id: number) => {
     if (selectedIds.includes(id)) {
@@ -25,6 +27,8 @@ function ResultsTable({
       onSelectionChange([...selectedIds, id]);
     }
   };
+
+  const extraColumns = (showPrefecture ? 1 : 0) + (canEdit ? 2 : 1);
 
   return (
     <div className="grid-section">
@@ -36,13 +40,13 @@ function ResultsTable({
             {ROAD_FIELDS.map((f) => (
               <th key={f.name}>{f.label}</th>
             ))}
-            <th>選択</th>
-            <th>編集</th>
+            {canEdit && <th>選択</th>}
+            {canEdit && <th>編集</th>}
           </tr>
         </thead>
         <tbody>
           {roads.length === 0 ? (
-            <tr><td colSpan={ROAD_FIELDS.length + 3 + (showPrefecture ? 1 : 0)}>検索結果がありません</td></tr>
+            <tr><td colSpan={ROAD_FIELDS.length + extraColumns}>検索結果がありません</td></tr>
           ) : (
             roads.map((road, idx) => (
               <tr key={road.id}>
@@ -51,16 +55,20 @@ function ResultsTable({
                 {ROAD_FIELDS.map((f) => (
                   <td key={f.name}>{road[f.name]}</td>
                 ))}
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(road.id)}
-                    onChange={() => toggle(road.id)}
-                  />
-                </td>
-                <td>
-                  <button type="button" className="edit-btn" onClick={() => onEdit(road)}>編集</button>
-                </td>
+                {canEdit && (
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(road.id)}
+                      onChange={() => toggle(road.id)}
+                    />
+                  </td>
+                )}
+                {canEdit && (
+                  <td>
+                    <button type="button" className="edit-btn" onClick={() => onEdit(road)}>編集</button>
+                  </td>
+                )}
               </tr>
             ))
           )}

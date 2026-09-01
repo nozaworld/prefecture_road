@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ROAD_FIELDS } from '../constants/roadFields';
 import type { Road } from '../types';
 
@@ -9,11 +9,16 @@ interface EditFormProps {
 }
 
 function EditForm({ road, onUpdate, onCancel }: EditFormProps) {
+  // roadが切り替わったら（別の行の編集を始めたら）formをroadに合わせてリセットする。
+  // useEffect+setStateではなく，レンダー中に前回値と比較して直接setStateする
+  // （https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes）
+  const [prevRoad, setPrevRoad] = useState(road);
   const [form, setForm] = useState<Road | null>(road);
 
-  useEffect(() => {
+  if (road !== prevRoad) {
+    setPrevRoad(road);
     setForm(road);
-  }, [road]);
+  }
 
   if (!form) return null;
 

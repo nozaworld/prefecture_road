@@ -1,5 +1,7 @@
 # 交通情報マスター（全47都道府県対応）
 
+[![CI](https://github.com/nozaworld/prefecture_road/actions/workflows/ci.yml/badge.svg)](https://github.com/nozaworld/prefecture_road/actions/workflows/ci.yml)
+
 ## 使用技術
 
 <p style="display: inline">
@@ -22,6 +24,7 @@
 - 都道府県ごとの道路区間データの検索（路線名の部分一致，区間延長の閾値指定，任意項目でのソート）
 - 7地方区分でグループ化した都道府県ナビゲーションと，複数県を横断した検索（`/multi`）
 - 路線名のオートコンプリート
+- フロントエンド上でのログイン・ログアウト（`/login`）。ユーザー登録（サインアップ）機能は提供しない
 - データの新規登録・更新・一括削除（ログインユーザーのみ）
 - Django管理画面（`/admin/`）からのデータ確認
 - CSVファイルからのデータ一括取り込み（管理コマンド`import_csv`，都道府県ごと，または`all`で全47都道府県まとめて）
@@ -49,6 +52,9 @@
 - djangorestframework `3.16.1`
 - django-cors-headers `4.9.0`
 - psycopg2-binary `2.9.10`
+- dj-database-url `3.1.2`（本番でのDATABASE_URL対応）
+- whitenoise `6.12.0`（静的ファイル配信）
+- gunicorn `26.2.0`（本番用アプリケーションサーバー）
 - PostgreSQL `16`
 
 フロントエンド
@@ -59,6 +65,7 @@
 - react `^19.2.8` / react-dom `^19.2.8`
 - react-router-dom `^7.18.2`
 - axios `^1.19.0`
+- vitest `^4.1.11`, @testing-library/react `^16.3.3`（`devDependencies`，テスト用）
 
 起動にはDocker / Docker Composeが使える環境が必要です．
 
@@ -91,26 +98,52 @@ docker compose exec backend python manage.py import_csv all
 
 停止する場合は`docker compose down`を使います．PostgreSQLのデータは名前付きボリューム（`postgres_data`）に保存されるため，`down`だけでは消えません．データごと削除する場合は`docker compose down -v`を使います．
 
+## テスト
+
+バックエンドは`roads/tests.py`にモデル・API・認証のテストがあります．
+
+```bash
+docker compose exec backend python manage.py test
+```
+
+フロントエンドはVitest + React Testing Libraryでコンポーネントのテストを行っています．
+
+```bash
+cd frontend
+npm run test        # 一度だけ実行
+npm run test:watch  # ファイル変更を監視して実行
+```
+
+pushとpull requestのたびに，GitHub Actions（`.github/workflows/ci.yml`）でバックエンドのテストと，フロントエンドのlint・テスト・ビルドを自動実行しています．
+
 ## プロジェクト構成
 
 - `backend/config/`
   Djangoプロジェクトの設定（`settings.py`，`urls.py`，`wsgi.py`，`asgi.py`）
 - `backend/roads/`
-  道路データを扱うDjangoアプリ．モデル（`models.py`），APIビュー（`views.py`），シリアライザ（`serializers.py`），URLルーティング（`urls.py`），CSV取り込み用管理コマンド（`management/commands/import_csv.py`）
+  道路データを扱うDjangoアプリ．モデル（`models.py`），APIビュー（`views.py`），シリアライザ（`serializers.py`），URLルーティング（`urls.py`），CSV取り込み用管理コマンド（`management/commands/import_csv.py`），テスト（`tests.py`）
+- `backend/roads/auth_views.py`
+  ログイン・ログアウト・ログイン状態確認のAPI（`/api/auth/`以下）。サインアップは提供しない
 - `backend/data/csv/`
   都道府県別の道路交通センサスCSVデータ（全47都道府県分，出典は上記「データの出典」を参照）
 - `frontend/src/pages/`
-  `PrefecturePage.tsx`（単一県の検索・一覧・登録・編集），`MultiPrefecturePage.tsx`（複数県を横断した検索）
+  `PrefecturePage.tsx`（単一県の検索・一覧・登録・編集），`MultiPrefecturePage.tsx`（複数県を横断した検索），`LoginPage.tsx`（ログイン画面）
 - `frontend/src/components/`
-  検索フォーム，結果テーブル，ページネーション，都道府県ナビゲーション，路線名オートコンプリートなどのUIコンポーネント
+  検索フォーム，結果テーブル，ページネーション，都道府県ナビゲーション，路線名オートコンプリートなどのUIコンポーネント（それぞれに`*.test.tsx`のテストを併置）
+- `frontend/src/auth/`
+  ログイン状態を管理する`AuthProvider`（`AuthContext.tsx`）と`useAuth`フック
 - `frontend/src/api/client.ts`
-  axiosによるバックエンドAPIクライアント
+  axiosによるバックエンドAPIクライアント（認証系のAPI呼び出しも含む）
 - `frontend/src/constants/`
   都道府県一覧（`prefectures.ts`），7地方区分（`regions.ts`），検索・表示項目の定義（`roadFields.ts`）
 - `original/`
   旧バージョン（Python標準WSGI + SQLite，参考用）
 - `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`
-  Docker Composeで一括起動するための構成
+  Docker Composeで一括起動するための構成（`backend/Dockerfile`は本番でもそのままgunicornで起動する）
+- `frontend/vercel.json`
+  Vercelにデプロイした際のSPAルーティング設定
+- `.github/workflows/ci.yml`
+  push・pull request時にバックエンドのテストとフロントエンドのlint・テスト・ビルドを実行するGitHub Actions
 
 ## ライセンス
 

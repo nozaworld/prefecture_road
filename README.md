@@ -1,118 +1,121 @@
 # 交通情報マスター（全47都道府県対応）
 
-道路交通センサスデータを都道府県ごとに検索・登録・編集・削除できるウェブアプリケーションです。
-`original/` にある，Python標準のWSGI（CGI相当）とSQLiteだけで実装された旧バージョンを，
-バックエンドをDjango（Django REST Framework），フロントエンドをReact（Vite + TypeScript）に置き換えて再構築しています。
+## 使用技術
 
-## 構成
+<p style="display: inline">
+  <img src="https://img.shields.io/badge/-Python-3776AB.svg?logo=python&style=for-the-badge&logoColor=white">
+  <img src="https://img.shields.io/badge/-Django-092E20.svg?logo=django&style=for-the-badge&logoColor=white">
+  <img src="https://img.shields.io/badge/-TypeScript-3178C6.svg?logo=typescript&style=for-the-badge&logoColor=white">
+  <img src="https://img.shields.io/badge/-React-61DAFB.svg?logo=react&style=for-the-badge&logoColor=black">
+  <img src="https://img.shields.io/badge/-PostgreSQL-4169E1.svg?logo=postgresql&style=for-the-badge&logoColor=white">
+  <img src="https://img.shields.io/badge/-Docker-2496ED.svg?logo=docker&style=for-the-badge&logoColor=white">
+</p>
 
-- `backend/` : Django + Django REST FrameworkによるAPIサーバー
-- `frontend/` : React（Vite + TypeScript）によるSPA
-- `original/` : 旧バージョン（WSGI + SQLite，参考用）
-- `docs/` : 構成図などの資料
+このプロジェクトは，道路交通センサスデータを都道府県ごとに検索・登録・編集・削除できるWebアプリです．`original/`にあるPython標準のWSGI（CGI相当）とSQLiteだけで実装した旧バージョンを，バックエンドをDjango（Django REST Framework），フロントエンドをReact（Vite + TypeScript），データベースをPostgreSQLに置き換えて再構築しています．
 
-## セットアップ
+## 概要
 
-### PostgreSQLの準備
+`original/`にある旧実装をベースに，都道府県ごとの道路区間データをRESTful APIとして扱えるようDjangoで再構築し，フロントエンドはSPAとして分離しています．検索条件の絞り込みやソート，複数県を横断した検索，路線名のオートコンプリートなど，旧バージョンにはなかった機能を追加しています．
 
-DBはPostgreSQLを使います。ローカルに未導入の場合は，どちらかの方法で用意してください。
+主な機能として，以下を扱います．
 
-```
-# Homebrewの場合
-brew install postgresql@16
-brew services start postgresql@16
-createdb prefecture
-
-# Dockerの場合
-docker run --name prefecture-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
-docker exec prefecture-db createdb -U postgres prefecture
-```
-
-接続先は環境変数`POSTGRES_DB`，`POSTGRES_USER`，`POSTGRES_PASSWORD`，`POSTGRES_HOST`，
-`POSTGRES_PORT`で上書きできます（`backend/config/settings.py`参照）。未設定時は
-`localhost:5432`のpostgresユーザー（パスワードpostgres），DB名`prefecture`に接続します。
-
-### バックエンド
-
-```
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py createsuperuser  # 登録・更新・一括削除にはログインが必要
-
-# 取得済みの都道府県を import_csv で取り込む（全47都道府県分のCSVは data/csv/ にある）
-python manage.py import_csv hokkaido
-python manage.py import_csv aomori
-python manage.py import_csv iwate
-python manage.py import_csv miyagi
-python manage.py import_csv akita
-python manage.py import_csv yamagata
-python manage.py import_csv fukushima
-python manage.py import_csv ibaraki
-python manage.py import_csv tochigi
-python manage.py import_csv gunma
-python manage.py import_csv saitama
-python manage.py import_csv chiba
-python manage.py import_csv tokyo
-python manage.py import_csv kanagawa
-python manage.py import_csv niigata
-python manage.py import_csv toyama
-python manage.py import_csv ishikawa
-python manage.py import_csv fukui
-python manage.py import_csv yamanashi
-python manage.py import_csv nagano
-python manage.py import_csv gifu
-python manage.py import_csv shizuoka
-python manage.py import_csv aichi
-python manage.py import_csv mie
-python manage.py import_csv shiga
-python manage.py import_csv kyoto
-python manage.py import_csv osaka
-python manage.py import_csv hyogo
-python manage.py import_csv nara
-python manage.py import_csv wakayama
-python manage.py import_csv tottori
-python manage.py import_csv shimane
-python manage.py import_csv okayama
-python manage.py import_csv hiroshima
-python manage.py import_csv yamaguchi
-python manage.py import_csv tokushima
-python manage.py import_csv kagawa
-python manage.py import_csv ehime
-python manage.py import_csv kochi
-python manage.py import_csv fukuoka
-python manage.py import_csv saga
-python manage.py import_csv nagasaki
-python manage.py import_csv kumamoto
-python manage.py import_csv oita
-python manage.py import_csv miyazaki
-python manage.py import_csv kagoshima
-python manage.py import_csv okinawa
-
-python manage.py runserver
-```
-
-`http://localhost:8000/api/` でAPIが起動します。
-
-以前のSQLite版のデータ（`backend/db.sqlite3`）はそのまま残していますが，PostgreSQLに
-切り替えた後は参照されません。PostgreSQL側は上記の`import_csv`を実行するまで空の状態です。
-
-### フロントエンド
-
-```
-cd frontend
-npm install
-npm install react-router-dom
-npm run dev
-```
-
-`http://localhost:5173/` でアプリにアクセスできます。
-
-## 主な機能
-
-- 都道府県ごとの道路データ検索（路線名，区間延長での絞り込み，任意項目でのソート）
+- 都道府県ごとの道路区間データの検索（路線名の部分一致，区間延長の閾値指定，任意項目でのソート）
+- 7地方区分でグループ化した都道府県ナビゲーションと，複数県を横断した検索（`/multi`）
 - 路線名のオートコンプリート
-- データの新規追加・更新・一括削除
-- 管理画面（`/admin/`）からのデータ確認
+- データの新規登録・更新・一括削除（ログインユーザーのみ）
+- Django管理画面（`/admin/`）からのデータ確認
+- CSVファイルからのデータ一括取り込み（管理コマンド`import_csv`，都道府県ごと，または`all`で全47都道府県まとめて）
+- 一覧のページネーション（1ページ50件，`page_size`で最大200件まで変更可）
+
+## 制約
+
+- 対応データは全47都道府県の道路交通センサスデータに限定しており，取り込みには`backend/data/csv/`以下の都道府県別CSVファイルが必要です．
+- 登録・更新・削除にはDjangoのログイン認証が必要で，サインアップ機能は実装していません（`createsuperuser`でユーザーを作成します）．
+- 認証はセッション認証ベースであり，トークン認証やOAuthには対応していません．
+- 複数ユーザーが同時に同じデータを編集した場合の排他制御は行っていません．
+
+## データの出典
+
+`backend/data/csv/`以下の道路交通データは，以下の調査によるものです．
+
+国土交通省道路局道路調査課，全国道路・街路交通情勢調査，https://www.mlit.go.jp/road/census/r3/index.html
+
+## 要件
+
+バックエンド
+
+- Python `3.11`系（DockerイメージのPythonバージョン）
+- Django `4.2.30`（`requirements.txt`）
+- djangorestframework `3.16.1`
+- django-cors-headers `4.9.0`
+- psycopg2-binary `2.9.10`
+- PostgreSQL `16`
+
+フロントエンド
+
+- Node.js `22`系（npmはNode.jsに同梱）
+- TypeScript `^6.0.3`（`devDependencies`）
+- vite `^8.2.2`（`devDependencies`）
+- react `^19.2.8` / react-dom `^19.2.8`
+- react-router-dom `^7.18.2`
+- axios `^1.19.0`
+
+起動にはDocker / Docker Composeが使える環境が必要です．
+
+## 使い方
+
+1. リポジトリをクローンします．
+
+```bash
+git clone https://github.com/nozaworld/prefecture_road.git
+cd prefecture_road
+```
+
+2. コンテナをビルドして起動します．
+
+```bash
+docker compose up --build
+```
+
+PostgreSQL・バックエンド・フロントエンドがまとめて起動し，マイグレーションも自動で実行されます．
+
+- API : `http://localhost:8000/api/`
+- フロントエンド : `http://localhost:5173/`
+
+3. 初回のみ，管理ユーザーの作成とCSVデータの取り込みを行います．
+
+```bash
+docker compose exec backend python manage.py createsuperuser
+docker compose exec backend python manage.py import_csv all
+```
+
+停止する場合は`docker compose down`を使います．PostgreSQLのデータは名前付きボリューム（`postgres_data`）に保存されるため，`down`だけでは消えません．データごと削除する場合は`docker compose down -v`を使います．
+
+## プロジェクト構成
+
+- `backend/config/`
+  Djangoプロジェクトの設定（`settings.py`，`urls.py`，`wsgi.py`，`asgi.py`）
+- `backend/roads/`
+  道路データを扱うDjangoアプリ．モデル（`models.py`），APIビュー（`views.py`），シリアライザ（`serializers.py`），URLルーティング（`urls.py`），CSV取り込み用管理コマンド（`management/commands/import_csv.py`）
+- `backend/data/csv/`
+  都道府県別の道路交通センサスCSVデータ（全47都道府県分，出典は上記「データの出典」を参照）
+- `frontend/src/pages/`
+  `PrefecturePage.tsx`（単一県の検索・一覧・登録・編集），`MultiPrefecturePage.tsx`（複数県を横断した検索）
+- `frontend/src/components/`
+  検索フォーム，結果テーブル，ページネーション，都道府県ナビゲーション，路線名オートコンプリートなどのUIコンポーネント
+- `frontend/src/api/client.ts`
+  axiosによるバックエンドAPIクライアント
+- `frontend/src/constants/`
+  都道府県一覧（`prefectures.ts`），7地方区分（`regions.ts`），検索・表示項目の定義（`roadFields.ts`）
+- `original/`
+  旧バージョン（Python標準WSGI + SQLite，参考用）
+- `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`
+  Docker Composeで一括起動するための構成
+
+## ライセンス
+
+このプロジェクトはMITライセンスのもとで公開されています．詳細は[LICENSE](./LICENSE)を参照してください．
+
+## 補足
+
+`original/`にある旧バージョンは，単一のPython標準WSGIスクリプトとSQLiteだけで完結する構成でした．本バージョンでは，APIとフロントエンドを分離し，DjangoによるCRUD機能・ログイン認証・PostgreSQLへの移行・Docker Composeでの一括起動など，旧バージョンにはなかった仕組みを追加しています．

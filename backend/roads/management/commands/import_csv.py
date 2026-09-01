@@ -24,24 +24,42 @@ def safe_int(value, default=0):
 
 
 class Command(BaseCommand):
-    help = 'CSVファイルから道路データを取り込む（例: python manage.py import_csv aichi）'
+    help = (
+        'CSVファイルから道路データを取り込む'
+        '（例: python manage.py import_csv aichi，全件は python manage.py import_csv all）'
+    )
 
     def add_arguments(self, parser):
-        parser.add_argument('prefecture', type=str, help=f'対応都道府県: {", ".join(SUPPORTED_PREFECTURES)}')
+        parser.add_argument(
+            'prefecture',
+            type=str,
+            help=f'対応都道府県，または全47都道府県をまとめて取り込む\'all\': {", ".join(SUPPORTED_PREFECTURES)}',
+        )
         parser.add_argument('--reset', action='store_true', help='取り込み前に既存データを削除する')
 
     def handle(self, *args, **options):
         prefecture = options['prefecture']
+        reset = options['reset']
+
+        if prefecture == 'all':
+            for code in SUPPORTED_PREFECTURES:
+                self._import_one(code, reset)
+            return
+
         if prefecture not in SUPPORTED_PREFECTURES:
             raise CommandError(
-                f"'{prefecture}' は対応していない都道府県名です。対応都道府県: {', '.join(SUPPORTED_PREFECTURES)}"
+                f"'{prefecture}' は対応していない都道府県名です。"
+                f"対応都道府県: {', '.join(SUPPORTED_PREFECTURES)}（'all'で全件取り込み）"
             )
 
+        self._import_one(prefecture, reset)
+
+    def _import_one(self, prefecture, reset):
         csv_path = Path(settings.BASE_DIR) / 'data' / 'csv' / f'{prefecture}.csv'
         if not csv_path.exists():
             raise CommandError(f'CSVファイルが見つかりません: {csv_path}')
 
-        if options['reset']:
+        if reset:
             deleted, _ = Road.objects.filter(prefecture=prefecture).delete()
             self.stdout.write(f'{prefecture}: 既存データ{deleted}件を削除しました。')
 
